@@ -51,7 +51,6 @@ async function summary(roomId, userId) {
 
   try {
     const summaryTargetContent = await getNotSummaries(roomId);
-    
     // 반환된 메시지가 50개가 아니면 summary 함수를 실행하지 않음
     if (!summaryTargetContent || summaryTargetContent.length !== 50) {
       console.log(`Summary not executed: message count is ${summaryTargetContent?.length || 0}, expected 50`);

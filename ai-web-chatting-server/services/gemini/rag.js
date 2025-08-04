@@ -115,7 +115,6 @@ async function handleFunctionCall(data, contents, apiKey) {
   console.log('Function call detected:', functionCall);
 
   const functionResult = await executeToolFunction(functionCall);
-  console.log(functionResult)
   const updatedContents = [
     ...contents,
     data.candidates[0].content,

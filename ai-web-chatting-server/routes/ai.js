@@ -116,7 +116,6 @@ router.post('/chat/tool', authenticateToken, async (req, res) => {
         }
       }
     }
-
     const result = await toolChat(messages);
     console.log('Tool AI response:', result);
 

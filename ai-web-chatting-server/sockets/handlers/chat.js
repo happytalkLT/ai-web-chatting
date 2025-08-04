@@ -1,6 +1,7 @@
 const { multiChat } = require('../../services/gemini/multiChat');
 const { toolChat } = require('../../services/gemini/tool');
 const { ragChat } = require('../../services/gemini/rag');
+const {summary} = require("../../services/gemini/summary");
 const MySQLDatabaseService = require('../../services/mysql-database');
 
 module.exports = (io, socket) => {
@@ -210,6 +211,8 @@ module.exports = (io, socket) => {
           console.error('Failed to save user message:', saveError);
         }
       }
+      // Call Summary Service
+      const summeryText = await summary(roomId, socket.userId)
 
       // Call RAG service
       const result = await ragChat(roomId);
