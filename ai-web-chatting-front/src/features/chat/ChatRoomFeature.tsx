@@ -6,8 +6,9 @@ import { ChatMessage, ChatRoom } from '@/types/chat';
 import ChatHeader from '@/components/chat/ChatHeader';
 import MessageList from '@/components/chat/MessageList';
 import MessageInput from '@/components/chat/MessageInput';
-import { sendChatMessage, sendChatMessageWithTool, sendChatMessageWithRag, Message, getChatRooms, getChatRoomMessages, ChatRoomMessage } from '@/services/chatApi';
+import { Message, getChatRooms, getChatRoomMessages, ChatRoomMessage } from '@/services/chatApi';
 import { ErrorMessages, isErrorMessage } from '@/constants/errorMessages';
+import { useSocket } from '@/contexts/SocketContext';
 
 interface ChatRoomFeatureProps {
   roomId: string;
@@ -15,6 +16,7 @@ interface ChatRoomFeatureProps {
 
 export default function ChatRoomFeature({ roomId }: ChatRoomFeatureProps) {
   const router = useRouter();
+  const { isConnected, joinRoom, leaveRoom, sendChatMessage, error: socketError } = useSocket();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatRoom, setChatRoom] = useState<ChatRoom | null>(null);
   const [chatMode, setChatMode] = useState<'content' | 'tool' | 'rag'>('content');
@@ -72,6 +74,16 @@ export default function ChatRoomFeature({ roomId }: ChatRoomFeatureProps) {
         
         setMessages(convertedMessages.reverse()); // 시간순 정렬
         
+        // Socket.io로 채팅방 입장
+        if (isConnected) {
+          try {
+            await joinRoom(roomId);
+            console.log(`Joined room: ${roomId}`);
+          } catch (err) {
+            console.error('Failed to join room via socket:', err);
+          }
+        }
+        
       } catch (err: any) {
         console.error('Error loading chat room and messages:', err);
         setError(err.message || '채팅방을 불러오는데 실패했습니다.');
@@ -83,18 +95,21 @@ export default function ChatRoomFeature({ roomId }: ChatRoomFeatureProps) {
     if (roomId) {
       loadChatRoomAndMessages();
     }
-  }, [roomId]);
-
-  const sendMessageByMode = async (messages: Message[], mode: 'content' | 'tool' | 'rag', roomId?: string): Promise<string> => {
-    const chatMethods = {
-      content: sendChatMessage,
-      tool: sendChatMessageWithTool,
-      rag: sendChatMessageWithRag
+    
+    // Cleanup: leave room on unmount
+    return () => {
+      if (roomId && isConnected) {
+        leaveRoom(roomId);
+      }
     };
+  }, [roomId, isConnected, joinRoom, leaveRoom]);
 
-    const selectedMethod = chatMethods[mode];
-    return await selectedMethod(messages, roomId);
-  };
+  // Socket error handling
+  useEffect(() => {
+    if (socketError) {
+      setError(socketError);
+    }
+  }, [socketError]);
 
   const handleSendMessage = async (inputMessage: string) => {
     if (!chatRoom) return;
@@ -148,15 +163,24 @@ export default function ChatRoomFeature({ roomId }: ChatRoomFeatureProps) {
         text: inputMessage
       });
       
-      console.log('Sending messages to API:', apiMessages);
-      // AI API 호출 시 roomId 전달 - 서버에서 자동으로 메시지 저장
-      const aiResponseText = await sendMessageByMode(apiMessages, chatMode, chatRoom.id);
+      console.log('Sending messages via Socket.io:', apiMessages);
+      
+      // Check socket connection
+      if (!isConnected) {
+        throw new Error('Socket not connected. Please refresh the page.');
+      }
+      
+      // Send message via Socket.io
+      const response = await sendChatMessage(apiMessages, chatRoom.id, chatMode);
       const endTime = Date.now();
       const durationMs = endTime - startTime;
       const durationSeconds = Math.round(durationMs / 1000);
       const minutes = Math.floor(durationSeconds / 60);
       const seconds = durationSeconds % 60;
       const durationString = minutes > 0 ? `${minutes}:${seconds.toString().padStart(2, '0')}` : `${seconds}s`;
+
+      // Extract text from response
+      const aiResponseText = response.candidates?.[0]?.content?.parts?.[0]?.text || 'No response received';
 
       setMessages(prev => prev.map(msg => 
         msg.id === loadingMessageId 
@@ -195,6 +219,7 @@ export default function ChatRoomFeature({ roomId }: ChatRoomFeatureProps) {
           <div className="text-center">
             <i className="fas fa-spinner fa-spin text-3xl text-[#0066FF] mb-4"></i>
             <p className="text-[#A0AEC0]">채팅방을 불러오는 중...</p>
+            {!isConnected && <p className="text-yellow-400 mt-2">소켓 연결 중...</p>}
           </div>
         </div>
       </div>
@@ -248,11 +273,17 @@ export default function ChatRoomFeature({ roomId }: ChatRoomFeatureProps) {
         roomDescription={chatRoom.description}
         onGoBack={handleGoBack}
       />
+      {!isConnected && (
+        <div className="bg-yellow-500 bg-opacity-20 px-4 py-2 text-center">
+          <i className="fas fa-exclamation-triangle mr-2"></i>
+          소켓 연결 끊김. 재연결 시도 중...
+        </div>
+      )}
       <MessageList messages={messages} />
       <MessageInput 
         onSendMessage={handleSendMessage} 
         onModeChange={setChatMode} 
-        isLoading={isLoading} 
+        isLoading={isLoading || !isConnected} 
       />
     </div>
   );

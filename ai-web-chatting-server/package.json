@@ -6,10 +6,12 @@
     "start": "node ./bin/www",
     "dev": "nodemon ./bin/www",
     "check-charset": "node scripts/check-db-charset.js",
+    "fix-charset": "node scripts/fix-charset.js",
     "fix-foreign-keys": "node scripts/fix-foreign-keys.js"
   },
   "dependencies": {
     "@qdrant/js-client-rest": "^1.14.1",
+    "@socket.io/redis-adapter": "^8.3.0",
     "cookie-parser": "~1.4.4",
     "dayjs": "^1.11.13",
     "debug": "~2.6.9",
@@ -19,7 +21,9 @@
     "morgan": "~1.9.1",
     "multer": "^2.0.1",
     "mysql2": "^3.14.1",
+    "redis": "^4.7.1",
     "reflect-metadata": "^0.2.2",
+    "socket.io": "^4.8.1",
     "typeorm": "^0.3.25"
   },
   "devDependencies": {

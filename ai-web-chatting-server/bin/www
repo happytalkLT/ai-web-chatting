@@ -7,6 +7,9 @@
 var debug = require('debug')('ai-web-chatting-server:server');
 var http = require('http');
 const { initializeApp } = require('../app');
+const { Server } = require('socket.io');
+const { createAdapter } = require('@socket.io/redis-adapter');
+const { createClient } = require('redis');
 
 var server;
 var port;
@@ -30,6 +33,39 @@ async function startServer() {
      * Create HTTP server.
      */
     server = http.createServer(app);
+
+    /**
+     * Initialize Socket.io
+     */
+    const io = new Server(server, {
+      cors: {
+        origin: '*',
+        methods: ['GET', 'POST'],
+        credentials: true
+      }
+    });
+
+    /**
+     * Set up Redis adapter for Socket.io
+     */
+    const pubClient = createClient({
+      socket: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: process.env.REDIS_PORT || 6379
+      }
+    });
+    const subClient = pubClient.duplicate();
+    
+    await Promise.all([pubClient.connect(), subClient.connect()]);
+    
+    io.adapter(createAdapter(pubClient, subClient));
+    console.log('✅ Socket.io initialized with Redis adapter');
+    
+    // Make io accessible in the app
+    app.set('io', io);
+    
+    // Import and initialize socket handlers
+    require('../sockets')(io);
 
     /**
      * Listen on provided port, on all network interfaces.
