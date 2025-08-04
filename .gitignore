@@ -1,0 +1,7 @@
+.idea/*
+*/node_modules
+ai-web-chatting-front/.next
+*/.idea
+*/.env
+*/.DS_Store
+.claude

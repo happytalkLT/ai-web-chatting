@@ -1,0 +1,18 @@
+[
+  {
+    "name": "search_happytalk_guide",
+    "description": "Happytalk 솔루션에 전반적인 사용 방법과 가이드를 검색 할 수 있습니다. 제공 받는 답변은 최대 10개의 문서 참조를 제공하며, 질문 query와 가장 근사한 문서를 정답으로 제공하세요.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "사용자가 궁금한 내용을 문서 검색 할 수 있는 문장으로 제공하세요. 이전 user 의 컨택스트가 존재 하면, 컨텍스트 포함하여 검색 쿼리에 추가 하세요"
+        }
+      },
+      "required": [
+        "query"
+      ]
+    }
+  }
+]

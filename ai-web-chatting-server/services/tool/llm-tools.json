@@ -1,0 +1,30 @@
+[
+  {
+    "name": "get_current_time",
+    "description": "특정 도시, 국가 또는 지역의 현재 시간을 가져옵니다. 도시 이름(예: 파리, 뮌헨, 서울, 뉴욕), 국가 이름(예: 프랑스, 독일, 한국), 또는 시간대(예: Asia/Seoul, Europe/Paris)를 기반으로 현재 시간을 조회할 수 있습니다.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "type": "string",
+          "description": "도시 이름(파리, 뮌헨, 서울, 도쿄, 런던, 뉴욕 등), 국가 이름(프랑스, 독일, 한국, 일본 등), 또는 시간대(Europe/Paris, Europe/Berlin, Asia/Seoul 등). 도시나 국가 이름을 입력하면 자동으로 해당 시간대로 변환됩니다."
+        }
+      },
+      "required": ["location"]
+    }
+  },
+  {
+    "name": "get_search_local",
+    "description": "네이버 지역 검색 API를 사용하여 특정 지역의 장소, 업체, 상점 등을 검색합니다. 음식점, 카페, 병원, 약국, 편의점, 관광지 등 다양한 장소를 검색할 수 있으며, 검색 결과에는 장소명, 주소, 전화번호, 카테고리 등의 정보가 포함됩니다.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "검색할 장소나 업체명. 예: '강남역 맛집', '서울 카페', '부산 병원', '제주도 관광지' 등. 지역명과 함께 검색하면 더 정확한 결과를 얻을 수 있습니다."
+        }
+      },
+      "required": ["query"]
+    }
+  }
+]
