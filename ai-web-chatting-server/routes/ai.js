@@ -3,6 +3,7 @@ var router = express.Router();
 const { multiChat } = require('../services/gemini/multiChat');
 const {toolChat} = require("../services/gemini/tool");
 const {ragChat} = require("../services/gemini/rag");
+const {summary} = require("../services/gemini/summary");
 const {authenticateToken} = require("../middleware/auth");
 const MySQLDatabaseService = require('../services/mysql-database');
 
@@ -187,8 +188,8 @@ router.post('/chat/rag', authenticateToken, async (req, res) => {
     if (!roomId) {
       return res.status(400).json({ error: 'roomId is required for RAG chat' });
     }
-    
-    const result = await ragChat(roomId);
+    const summeryText = await summary(roomId, userId)
+    const result = await ragChat(roomId, summeryText);
     console.log('RAG AI response:', result);
 
     // roomId가 제공된 경우 AI 응답을 먼저 DB에 저장

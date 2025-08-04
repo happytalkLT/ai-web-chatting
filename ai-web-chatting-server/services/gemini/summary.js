@@ -70,9 +70,9 @@ async function summary(roomId, userId) {
     if (roomId && userId && data && data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
       const summaryText = data.candidates[0].content.parts[0].text;
       await saveSummary(roomId, userId, summaryText);
+      return summaryText;
     }
-    
-    return data;
+    return null;
   } catch (error) {
     console.error('Error calling Gemini API with tools:', error);
     throw error;
